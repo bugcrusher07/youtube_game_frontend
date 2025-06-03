@@ -66,7 +66,7 @@ export class ThreejsService{
     const sidePlane2 = new THREE.Mesh(sideGeometry,blackMaterial);
     this.plane = new THREE.Mesh(geometry,material);
     const axesHelper = new THREE.AxesHelper( 5 );
-    this.scene.add( axesHelper );
+    // this.scene.add( axesHelper );
     this.plane.rotateX(-Math.PI/2);
     sidePlane.rotateX(-Math.PI/2);
     sidePlane2.rotateX(-Math.PI/2);

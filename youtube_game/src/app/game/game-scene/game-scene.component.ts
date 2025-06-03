@@ -2,6 +2,7 @@ import { inject,AfterViewInit,ViewChild,ElementRef,Component } from "@angular/co
 import { ThreejsService } from "../threejs-init/threejs.service";
 import { Level2 } from "../levels/level2.service";
 import { Level1 } from "../levels/level1.service";
+import { Enemies } from "../enemies/enemies.service";
 
 
 @Component({
@@ -18,6 +19,7 @@ export class GameScene implements AfterViewInit{
   threejsService =inject(ThreejsService);
   level2 = inject(Level2);
   level1 = inject(Level1);
+  enemies = inject(Enemies);
 
     takingInput = (e:KeyboardEvent)=>{
     if(!this.threejsService) return;
@@ -51,6 +53,11 @@ export class GameScene implements AfterViewInit{
     this.threejsService.generateBridge();
     this.threejsService.generateCube();
     this.threejsService.loadingCastle();
+    // this.enemies.loadEnemies(this.threejsService.scene);
+    // this.enemies.loadBoxEnemy(this.threejsService.scene);
+    this.level1.loadEnemies(this.threejsService.scene);
+    // this.level1.loadBigBoxEnemies(this.threejsService.scene);
+
     this.threejsService.startRenderLoop();
   }
 }
