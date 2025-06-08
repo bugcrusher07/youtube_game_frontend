@@ -7,6 +7,20 @@ import { Enemies } from "../enemies/enemies.service";
 })
 export class Level1{
     enemy = inject(Enemies);
+    numOfSmallEnemies:number = 20;
+    numOfBigEnemies:number = 1
+    MIN_X = -8;
+    MAX_X = 8;
+    DIVIDER_BUFFER = 2
+    leftArea = {
+      minX:this.MIN_X,
+      maxX:-this.DIVIDER_BUFFER
+    }
+    rightArea ={
+      minX:this.DIVIDER_BUFFER,
+      maxX:this.MAX_X
+    }
+
 
     initdividingPlanes(scene:three.Scene){
     const geometry = new three.BoxGeometry(2,0.5,75);
@@ -36,9 +50,13 @@ export class Level1{
   }
 
   loadEnemies(scene:three.Scene){
-    this.enemy.loadBoxEnemy(scene);
+    if (this.numOfSmallEnemies>0){
+      const spawnSide = ((Math.random()) > 0.5) ? this.rightArea:this.leftArea;
+      const randomPos = spawnSide.minX + Math.random()* ( spawnSide.maxX-spawnSide.minX);
+    this.enemy.loadBoxEnemy(scene,randomPos);
+    }
   }
   loadBigBoxEnemies(scene:three.Scene){
-    this.enemy.loadBigBoxEnemy(scene);
+    this.enemy.loadBigBoxEnemy(scene,0);
   }
 }

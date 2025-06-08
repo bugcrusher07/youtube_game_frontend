@@ -1,7 +1,10 @@
-import {  Injectable } from "@angular/core";
+import {  inject, Injectable } from "@angular/core";
 import * as THREE from "three";
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { Bullet } from "../bullets/bullet.service";
+import { EnemyData } from "../enemies/enemies.service";
+
 @Injectable({
   providedIn:"root",
 })
@@ -13,6 +16,10 @@ export class ThreejsService{
   cube!:THREE.Mesh;
   control!:OrbitControls;
   plane!:THREE.Mesh;
+  bullets:Bullet[] = [] ;
+  clock = new THREE.Clock();
+  bulletInterval!: number;
+  enemies: THREE.Object3D[] = [];
 
   initCamera(container?: HTMLElement) {
     const width = container ? container.clientWidth : window.innerWidth;
@@ -24,9 +31,6 @@ export class ThreejsService{
     // this.control?.update();
   }
 
-  controls(eventListner:EventListener){
-
-  }
 
   initRenderer(container?:HTMLElement){
     this.renderer = new THREE.WebGLRenderer();
@@ -38,25 +42,140 @@ export class ThreejsService{
   initScene(){
     this.scene.background=new THREE.Color(0xffffff);
   }
-  generateCube(){
-    const geometry = new THREE.BoxGeometry( 1, 1, 1 );
-    const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-    this.cube = new THREE.Mesh( geometry, material );
-    this.cube.position.set(0,0,40) ;
-    this.scene.add(this.cube );
-  }
+
+
   startRenderLoop() {
     const animate =()=>{
     requestAnimationFrame(animate);
-    this.cube.rotation.x+=0.005;
-    this.cube.rotation.y+=0.005;
     this.renderer.render(this.scene, this.camera);
+    this.updateBullets();
     // console.log(`rotation is ${this.camera.rotation}`);
     // console.log(`position is ${this.camera.position}`);
     };
     animate();
   }
 
+  addBullet(bullet: Bullet) {
+    this.scene.add(bullet.mesh);
+    this.bullets.push(bullet);
+  }
+  // removeEnemy(enemy: THREE.Object3D) {
+  //   this.scene.remove(enemy);
+  //   this.enemies = this.enemies.filter(e => e !== enemy);
+  // }
+
+  // handleBulletHit(bullet: Bullet) {
+  //   // Find which enemy was hit and reduce HP
+  //   const hitEnemy = this.enemies.find(enemy => {
+  //     const enemyBox = new THREE.Box3().setFromObject(enemy);
+  //     const bulletSphere = new THREE.Sphere(bullet.mesh.position, bullet.radius);
+  //     return enemyBox.intersectsSphere(bulletSphere);
+  //   });
+
+  //   if (hitEnemy) {
+  //     hitEnemy as any;
+  //     hitEnemy.takeDamage(10);
+
+
+  //     // Assuming enemies have a custom HP property
+  //     // if ((hitEnemy as any)['hp'] !== undefined) {
+  //     //   (hitEnemy as any)['hp'] -= 10;
+  //     //   console.log('Enemy hit! Remaining HP:', (hitEnemy as any).hp);
+
+  //     //   if ((hitEnemy as any).hp <= 0) {
+  //     //     this.removeEnemy(hitEnemy);
+  //     //   }
+  //     // }
+  //   }
+  // }
+
+private removeEnemy(enemy: THREE.Object3D) {
+  // Remove both enemy mesh and its edges
+  const edges = this.scene.children.find(child =>
+    child instanceof THREE.LineSegments &&
+    child.position.equals(enemy.position)
+  );
+
+  if (edges) this.scene.remove(edges);
+  this.scene.remove(enemy);
+
+  // Remove from enemies array
+  this.enemies = this.enemies.filter(e => e !== enemy);
+}
+private flashEnemy(enemy: THREE.Object3D) {
+  if (enemy instanceof THREE.Mesh) {
+    const originalColor = (enemy.material as THREE.MeshBasicMaterial).color.clone();
+    (enemy.material as THREE.MeshBasicMaterial).color.set(0xffffff);
+
+    setTimeout(() => {
+      (enemy.material as THREE.MeshBasicMaterial).color.copy(originalColor);
+    }, 100);
+  }
+}
+
+private handleEnemyHit(enemy: THREE.Object3D) {
+  // Type-safe way to access userData
+  if(enemy.userData as EnemyData){
+    enemy.userData["takeDamage"](10); // Deal 10 damage per hit
+    console.log(enemy.userData['hp']);
+    // Visual feedback
+    this.flashEnemy(enemy);
+
+    // Check if enemy should be removed
+    if (enemy.userData["hp"] <= 0) {
+      this.removeEnemy(enemy);
+    }
+  }
+}
+  updateBullets() {
+    const delta = this.clock.getDelta(); // Use delta time for smooth movement
+
+    this.bullets = this.bullets.filter(bullet => {
+      bullet.update(delta);
+    //
+    // Check collision with all enemies
+    const hitEnemy = bullet.checkCollision(this.enemies);
+    if (hitEnemy) {
+      this.handleEnemyHit(hitEnemy);
+      this.scene.remove(bullet.mesh);
+      return false;
+    }
+
+    if (!bullet.isActive) {
+      this.scene.remove(bullet.mesh);
+      return false;
+    }
+    return true;
+  });
+  }
+   startAutoFiring() {
+    // Clear any existing interval
+    if (this.bulletInterval) clearInterval(this.bulletInterval);
+
+    // Fire a bullet every second (1000ms)
+    this.bulletInterval = window.setInterval(() => {
+      let startPosition = this.cube.position.clone();
+      startPosition.z -=1;
+      startPosition.y +=0.5;
+      if (this.cube && (this.cube.position.x>=1|| this.cube.position.x <=- 1 )) {
+        const bullet = new Bullet(
+          startPosition,
+          new THREE.Vector3(0,0,-1), // Fire towards -Z (towards castle)
+          0x00ff00, // Green color
+          10 // Faster speed
+        );
+        this.addBullet(bullet);
+      }
+    }, 1000); // 1000ms = 1 second
+  }
+
+  generateCube(){
+    const geometry = new THREE.BoxGeometry( 1, 1, 1 );
+    const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+    this.cube = new THREE.Mesh( geometry, material );
+    this.cube.position.set(0,0,40);
+    this.scene.add(this.cube);
+  }
   generateBridge(){
     const geometry = new THREE.PlaneGeometry( 20, 90 );
     const sideGeometry = new THREE.PlaneGeometry( 5, 90 );

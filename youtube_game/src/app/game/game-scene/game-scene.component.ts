@@ -1,8 +1,10 @@
 import { inject,AfterViewInit,ViewChild,ElementRef,Component } from "@angular/core";
+// import * as three from 'three';
 import { ThreejsService } from "../threejs-init/threejs.service";
 import { Level2 } from "../levels/level2.service";
 import { Level1 } from "../levels/level1.service";
 import { Enemies } from "../enemies/enemies.service";
+// import { Player } from "../player/player.service";
 
 
 @Component({
@@ -20,6 +22,8 @@ export class GameScene implements AfterViewInit{
   level2 = inject(Level2);
   level1 = inject(Level1);
   enemies = inject(Enemies);
+  // playerInstance = inject(Player);
+  // player = this.playerInstance.generateCube(this.threejsService.scene);
 
     takingInput = (e:KeyboardEvent)=>{
     if(!this.threejsService) return;
@@ -27,11 +31,9 @@ export class GameScene implements AfterViewInit{
     switch(e.key){
       case "a":
         if(this.threejsService.cube.position.x >=-8){
-        console.log(this.threejsService.cube.position);
        this.threejsService.cube.position.x -=0.5;}
        break;
        case "d":
-        console.log("d presssed");
         if(this.threejsService.cube.position.x <=8){
         this.threejsService.cube.position.x +=0.5;}
         break;
@@ -49,9 +51,11 @@ export class GameScene implements AfterViewInit{
     this.threejsService.initRenderer(gameDiv);
     this.threejsService.initScene();
     this.level1.initdividingPlanes(this.threejsService.scene);
+    this.threejsService.startAutoFiring();
+    this.threejsService.generateCube();
     // this.level2.initdividingPlanes(this.threejsService.scene);
     this.threejsService.generateBridge();
-    this.threejsService.generateCube();
+    // this.threejsService.generateCube();
     this.threejsService.loadingCastle();
     // this.enemies.loadEnemies(this.threejsService.scene);
     // this.enemies.loadBoxEnemy(this.threejsService.scene);
