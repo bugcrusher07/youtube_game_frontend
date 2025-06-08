@@ -7,7 +7,7 @@ import { Enemies } from "../enemies/enemies.service";
 })
 export class Level1{
     enemy = inject(Enemies);
-    numOfSmallEnemies:number = 20;
+    numOfSmallEnemies:number = 2;
     numOfBigEnemies:number = 1
     MIN_X = -8;
     MAX_X = 8;
@@ -52,9 +52,10 @@ export class Level1{
   loadEnemies(scene:three.Scene){
     if (this.numOfSmallEnemies>0){
       const spawnSide = ((Math.random()) > 0.5) ? this.rightArea:this.leftArea;
-      const randomPos = spawnSide.minX + Math.random()* ( spawnSide.maxX-spawnSide.minX);
+    const randomPos = spawnSide.minX + Math.random()* ( spawnSide.maxX-spawnSide.minX);
     this.enemy.loadBoxEnemy(scene,randomPos);
     }
+    this.numOfSmallEnemies-=1;
   }
   loadBigBoxEnemies(scene:three.Scene){
     this.enemy.loadBigBoxEnemy(scene,0);

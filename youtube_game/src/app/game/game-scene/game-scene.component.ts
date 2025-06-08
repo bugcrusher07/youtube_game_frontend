@@ -45,6 +45,7 @@ export class GameScene implements AfterViewInit{
 
   ngAfterViewInit(): void {
     window.addEventListener('keydown',this.takingInput);
+    window.setInterval(()=>{this.level1.loadEnemies(this.threejsService.scene)},1000);
     let gameDiv = this.gameDiv.nativeElement;
     this.threejsService.initCamera(gameDiv);
     this.threejsService.initOrbitalControls(gameDiv);
@@ -59,7 +60,7 @@ export class GameScene implements AfterViewInit{
     this.threejsService.loadingCastle();
     // this.enemies.loadEnemies(this.threejsService.scene);
     // this.enemies.loadBoxEnemy(this.threejsService.scene);
-    this.level1.loadEnemies(this.threejsService.scene);
+    // this.level1.loadEnemies(this.threejsService.scene);
     // this.level1.loadBigBoxEnemies(this.threejsService.scene);
 
     this.threejsService.startRenderLoop();
