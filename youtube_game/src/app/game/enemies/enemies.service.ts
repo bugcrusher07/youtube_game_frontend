@@ -12,7 +12,6 @@ export interface EnemyData {
 export class Enemies{
 loader = new GLTFLoader();
 threejsService = inject(ThreejsService);
-
   loadEnemies(scene:three.Scene){
     this.loader.load('cyber_samurai/scene.gltf',(gltf)=>{
       const model = gltf.scene
@@ -38,7 +37,6 @@ threejsService = inject(ThreejsService);
       const material = new three.MeshBasicMaterial({color:0xa020f0});
       const enemy = new three.Mesh(geometry,material);
       enemy.position.set(xPos,2.505,-45);
-
 
       enemy.userData={
         hp:100,

@@ -20,6 +20,9 @@ export class ThreejsService{
   clock = new THREE.Clock();
   bulletInterval!: number;
   enemies: THREE.Object3D[] = [];
+  private lastEnemyMoveTime = 0;
+private enemyMoveInterval = 50; // milliseconds between moves
+private enemySpeed = 0.5;
 
   initCamera(container?: HTMLElement) {
     const width = container ? container.clientWidth : window.innerWidth;
@@ -49,6 +52,7 @@ export class ThreejsService{
     requestAnimationFrame(animate);
     this.renderer.render(this.scene, this.camera);
     this.updateBullets();
+    this.moveEnemies();
     // console.log(`rotation is ${this.camera.rotation}`);
     // console.log(`position is ${this.camera.position}`);
     };
@@ -252,22 +256,41 @@ loadingCastle(){
       child.material.map = child.material.map;
       child.material.metalnessMap = child.material.metalnessMap;
       child.material.needsUpdate = true;
-
-      // Adjust PBR values
       child.material.metalness = 0.5;
       child.material.roughness = 0.7;
     }
   });
-
-  // 3. Add lights
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
   const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
   directionalLight.position.set(5, 10, 7);
   this.scene.add(ambientLight, directionalLight);
-
   this.scene.add(model);
-});}
+  });}
 
+  // moveEnemies(){
+  //   let delta = this.clock.getDelta();
+  //   console.log(`Delta: ${delta.toFixed(4)}s, Speed: ${(1000* delta).toFixed(2)} units/frame`);
+  //   for (let i = 0; i <  this.enemies.length;i++){
+  //   this.enemies[i].position.z +=(1000*delta);
+  //   }
+  // }
+moveEnemies() {
+  const now = Date.now();
+
+  // Only move enemies if enough time has passed
+  if (now - this.lastEnemyMoveTime > this.enemyMoveInterval) {
+    for (let i = this.enemies.length - 1; i >= 0; i--) {
+      this.enemies[i].position.z += this.enemySpeed;
+
+      // Remove enemies that have passed the player
+      if (this.enemies[i].position.z >40) {
+        this.scene.remove(this.enemies[i]);
+        this.enemies.splice(i, 1);
+      }
+    }
+    this.lastEnemyMoveTime = now;
+  }
+}
   onWindowResize(container?: HTMLElement) {
     const width = container ? container.clientWidth : window.innerWidth;
     const height = container ? container.clientHeight : window.innerHeight;
